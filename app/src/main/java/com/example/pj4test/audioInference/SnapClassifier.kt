@@ -23,6 +23,9 @@ class SnapClassifier {
     // TimerTask
     private var task: TimerTask? = null
 
+    // Flag used for conditional audio sensing
+    var already_inferencing: Boolean = false
+
     /**
      * initialize
      *
@@ -36,7 +39,7 @@ class SnapClassifier {
         classifier = AudioClassifier.createFromFile(context, YAMNET_MODEL)
         Log.d(TAG, "Model loaded from: $YAMNET_MODEL")
         audioInitialize()
-        startRecording()
+//        startRecording()  // startRecording() 부분을 startInferencing 안에 옮겨놈.
         startInferencing()
     }
 
@@ -102,7 +105,10 @@ class SnapClassifier {
     }
 
     fun startInferencing() {
+        if(already_inferencing) return
+        already_inferencing = true
         Log.w(TAG, "starting audio inference")
+        startRecording()
         if (task == null) {
             task = Timer().scheduleAtFixedRate(0, REFRESH_INTERVAL_MS) {
                 val score = inference()
@@ -112,7 +118,10 @@ class SnapClassifier {
     }
 
     fun stopInferencing() {
+        if(!already_inferencing) return
+        already_inferencing = false
         Log.w(TAG, "pausing audio inference")
+        stopRecording()
         task?.cancel()
         task = null
     }

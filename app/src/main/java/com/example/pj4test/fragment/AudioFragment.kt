@@ -69,7 +69,7 @@ class AudioFragment: Fragment(), SnapClassifier.DetectorListener {
     }
 
     override fun onResults(score: Float) {
-        mainActivity.increaseCoolCount()
+//        mainActivity.increaseCoolCount()
         activity?.runOnUiThread {
             if (score > SnapClassifier.THRESHOLD) {
                 mainActivity.setAudioDetectedTrue()

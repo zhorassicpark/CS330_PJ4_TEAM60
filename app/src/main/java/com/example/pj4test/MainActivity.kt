@@ -9,7 +9,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import com.example.pj4test.audioInference.SnapClassifier
 import java.util.*
+import kotlin.concurrent.scheduleAtFixedRate
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
@@ -19,6 +21,7 @@ class MainActivity : AppCompatActivity() {
     private val PERMISSIONS_REQUEST = 0x0000001;
     private var audioDetected = false;
     private var smsCoolCount = 1800;
+    private var task: TimerTask? = null
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +29,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         checkPermissions() // check permissions
+        task = Timer().scheduleAtFixedRate(0, SnapClassifier.REFRESH_INTERVAL_MS) {
+            increaseCoolCount()
+        }
     }
 
     private fun checkPermissions() {
@@ -37,6 +43,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun stopAudioInference(){
+        val audioFragment : Fragment = supportFragmentManager.findFragmentById(R.id.audioFragmentContainerView) as Fragment
+        audioFragment.onPause()
+    }
+    fun startAudioInference(){
+        val audioFragment : Fragment = supportFragmentManager.findFragmentById(R.id.audioFragmentContainerView) as Fragment
+        audioFragment.onResume()
+    }
     fun setAudioDetectedTrue(){
         audioDetected = true
     }

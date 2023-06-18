@@ -225,6 +225,9 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
                 personView.setBackgroundColor(ProjectConfiguration.activeBackgroundColor)
                 personView.setTextColor(ProjectConfiguration.activeTextColor)
 //                Log.w(TAG, "Cat Detected!")
+
+                mainActivity.startAudioInference()
+
                 // 알림 띄우기
                 if(mainActivity.isAudioDetected() && mainActivity.isCoolCountFull()){
                     val smsManager:SmsManager
@@ -240,6 +243,7 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
                     mainActivity.initCoolCount()
                 }
             } else {
+                mainActivity.stopAudioInference()
                 personView.text = "NO CAT"
                 personView.setBackgroundColor(ProjectConfiguration.idleBackgroundColor)
                 personView.setTextColor(ProjectConfiguration.idleTextColor)
