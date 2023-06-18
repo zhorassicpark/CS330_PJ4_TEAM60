@@ -37,7 +37,6 @@ class SnapClassifier {
         Log.d(TAG, "Model loaded from: $YAMNET_MODEL")
         audioInitialize()
         startRecording()
-
         startInferencing()
     }
 
@@ -81,28 +80,29 @@ class SnapClassifier {
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    /**
-     * inference
-     *
-     * Make model inference of the audio gotten from audio recorder.
-     * Change recorded audio clip into an input tensor of the model,
-     * and classify the tensor with the audio classifier model.
-     *
-     * To classify honking sound, calculate the max predicted scores among 3 related classes,
-     * "Vehicle horn, car horn, honking", "Beep, bleep", and "Buzzer".
-     *
-     * @return  A score of the maximum float value among three classes
-     */
+            /**
+             * inference
+             *
+             * Make model inference of the audio gotten from audio recorder.
+             * Change recorded audio clip into an input tensor of the model,
+             * and classify the tensor with the audio classifier model.
+             *
+             * To classify honking sound, calculate the max predicted scores among 3 related classes,
+             * "Vehicle horn, car horn, honking", "Beep, bleep", and "Buzzer".
+             *
+             * @return  A score of the maximum float value among three classes
+             */
     fun inference(): Float {
         tensor.load(recorder)
         Log.d(TAG, tensor.tensorBuffer.shape.joinToString(","))
         val output = classifier.classify(tensor)
         Log.d(TAG, output.toString())
 
-        return output[0].categories.find { it.label == "Finger snapping" }!!.score
+        return output[0].categories.find { it.label == "Meow" }!!.score
     }
 
     fun startInferencing() {
+        Log.w(TAG, "starting audio inference")
         if (task == null) {
             task = Timer().scheduleAtFixedRate(0, REFRESH_INTERVAL_MS) {
                 val score = inference()
@@ -112,6 +112,7 @@ class SnapClassifier {
     }
 
     fun stopInferencing() {
+        Log.w(TAG, "pausing audio inference")
         task?.cancel()
         task = null
     }

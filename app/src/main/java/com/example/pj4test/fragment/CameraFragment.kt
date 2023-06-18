@@ -16,9 +16,13 @@
 package com.example.pj4test.fragment
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
+import android.telephony.SmsManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -33,9 +37,10 @@ import androidx.camera.core.ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.example.pj4test.ProjectConfiguration
+import com.example.pj4test.*
 import java.util.LinkedList
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -50,9 +55,9 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
 
     private val fragmentCameraBinding
         get() = _fragmentCameraBinding!!
-    
+
     private lateinit var personView: TextView
-    
+
     private lateinit var personClassifier: PersonClassifier
     private lateinit var bitmapBuffer: Bitmap
     private var preview: Preview? = null
@@ -61,6 +66,17 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
 
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
+
+    //TODO:
+    lateinit var mainActivity: MainActivity
+    private lateinit var notificationHelper: NotificationHelper
+    private lateinit var player:MediaPlayer
+
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        mainActivity = context as MainActivity
+    }
 
     override fun onDestroyView() {
         _fragmentCameraBinding = null
@@ -132,7 +148,6 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
         // Attach the viewfinder's surface provider to preview use case
         preview?.setSurfaceProvider(fragmentCameraBinding.viewFinder.surfaceProvider)
 
-
         // ImageAnalysis. Using RGBA 8888 to match how our models work
         imageAnalyzer =
             ImageAnalysis.Builder()
@@ -167,6 +182,7 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
     }
 
     private fun detectObjects(image: ImageProxy) {
+//        Log.w(TAG, "detect Objects called!")
         if (!::bitmapBuffer.isInitialized) {
             // The image rotation and RGB image buffer are initialized only once
             // the analyzer has started running
@@ -199,21 +215,35 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
                 imageHeight,
                 imageWidth
             )
-            
+
             // find at least one bounding box of the person
-            val isPersonDetected: Boolean = results!!.find { it.categories[0].label == "person" } != null
-            
+            val isCatDetected: Boolean = results!!.find { it.categories[0].label == "cat" } != null
+
             // change UI according to the result
-            if (isPersonDetected) {
-                personView.text = "PERSON"
+            if (isCatDetected) {
+                personView.text = "CAT DETECTED"
                 personView.setBackgroundColor(ProjectConfiguration.activeBackgroundColor)
                 personView.setTextColor(ProjectConfiguration.activeTextColor)
+//                Log.w(TAG, "Cat Detected!")
+                // 알림 띄우기
+                if(mainActivity.isAudioDetected() && mainActivity.isCoolCountFull()){
+                    val smsManager:SmsManager
+                    if (Build.VERSION.SDK_INT>=23) {
+                        smsManager = mainActivity.getSystemService(SmsManager::class.java)
+                    }
+                    else{
+                        smsManager = SmsManager.getDefault()
+                    }
+                    Log.w(TAG, "sending messages")
+                    smsManager.sendTextMessage("+821074776872", null, "고양이 배고프다옹! 밥 달라옹!", null, null)
+                    Log.w(TAG, "end sending messages\n")
+                    mainActivity.initCoolCount()
+                }
             } else {
-                personView.text = "NO PERSON"
+                personView.text = "NO CAT"
                 personView.setBackgroundColor(ProjectConfiguration.idleBackgroundColor)
                 personView.setTextColor(ProjectConfiguration.idleTextColor)
             }
-
             // Force a redraw
             fragmentCameraBinding.overlay.invalidate()
         }
@@ -223,5 +253,14 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
         activity?.runOnUiThread {
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    //알림 호출
+    private fun showNotification(title: String, message: String){
+
+        val nb: NotificationCompat.Builder =
+            notificationHelper.getChannelNotification(title, message)
+
+        notificationHelper.getManager().notify(1, nb.build())
     }
 }
