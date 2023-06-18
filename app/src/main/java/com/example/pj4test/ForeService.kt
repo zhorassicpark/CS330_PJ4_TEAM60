@@ -30,7 +30,7 @@ const val SERVICE_ID = 1
 class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorListener, LifecycleService() {
     private val TAG = "ForeService"
     val FORE_CHANNEL_ID = "forenotification"
-    private var coolCount = 60
+    private var coolCount = 60.0
     private var isAudioDetected = false;
 
 
@@ -83,19 +83,26 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
         personClassifier.setDetectorListener(this)
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor()
-        setUpCamera()
+//        setUpCamera()
+
+        imageAnalyzer = ImageAnalysis.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                .build()
+        imageAnalyzer!!.setAnalyzer(Executors.newSingleThreadExecutor()) { image -> detectObjects(image) }
 
         snapClassifier = SnapClassifier()
         snapClassifier.initialize(this)
         snapClassifier.setDetectorListener(this)
 
 
-        GlobalScope.launch{
-            while(true){
-                delay(1000)
-                coolCount++
-            }
-        }
+//        GlobalScope.launch{
+//            while(true){
+//                delay(1000)
+//                coolCount++
+//            }
+//        }
 
         return START_NOT_STICKY
     }
@@ -153,7 +160,7 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
     }
 
     private fun detectObjects(image: ImageProxy) {
-//        Log.w(TAG, "detectObject is being Called!")
+        Log.w(TAG, "detectObject is being Called!")
         if (!::bitmapBuffer.isInitialized) {
             // The image rotation and RGB image buffer are initialized only once
             // the analyzer has started running
@@ -187,10 +194,11 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
             if (isCatDetected) {
 //                Log.w(TAG, "Cat Detected!")
 
-                snapClassifier.startInferencing()
+//                snapClassifier.startInferencing()
 
                 // 알림 띄우기
-                if(isAudioDetected && coolCount > 60){
+//                if(isAudioDetected && coolCount > 60){
+                if(coolCount > 60){
                     val smsManager: SmsManager
                     if (Build.VERSION.SDK_INT>=23) {
                         smsManager = this.getSystemService(SmsManager::class.java)
@@ -201,10 +209,10 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
                     Log.w(TAG, "sending messages")
                     smsManager.sendTextMessage("+821074776872", null, "고양이 배고프다옹! 밥 달라옹!", null, null)
                     Log.w(TAG, "end sending messages\n")
-                    coolCount = 0
+                    coolCount = 0.0
                 }
             } else {
-                snapClassifier.stopInferencing()
+//                snapClassifier.stopInferencing()
             }
     }
 
@@ -214,7 +222,43 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
 
     override fun onResults(score: Float) {
 //        mainActivity.increaseCoolCount()
-        isAudioDetected = score > SnapClassifier.THRESHOLD
+        coolCount += 0.0333
+//        isAudioDetected = score > SnapClassifier.THRESHOLD
+        if(score > SnapClassifier.THRESHOLD && !isAudioDetected){
+            val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+            cameraProviderFuture.addListener(
+                {
+                    // CameraProvider
+                    val cameraProvider = cameraProviderFuture.get()
+                    val cameraSelector = CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
+                    try {
+                        // A variable number of use-cases can be passed here -
+                        // camera provides access to CameraControl & CameraInfo
+                        camera = cameraProvider.bindToLifecycle(
+                            this,
+                            cameraSelector,
+                            imageAnalyzer
+                        )
+                    } catch (exc: Exception) {
+                        Log.e(TAG, "Use case binding failed", exc)
+                    }
+                },
+                ContextCompat.getMainExecutor(this)
+            )
+            isAudioDetected = true;
+        }
+        else if(score < SnapClassifier.THRESHOLD && isAudioDetected){
+            val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+            cameraProviderFuture.addListener(
+                {
+                    // CameraProvider
+                    val cameraProvider = cameraProviderFuture.get()
+                    cameraProvider.unbindAll()
+                },
+                ContextCompat.getMainExecutor(this)
+            )
+            isAudioDetected = false;
+        }
     }
 
 }

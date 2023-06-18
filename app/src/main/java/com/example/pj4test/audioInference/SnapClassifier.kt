@@ -97,9 +97,9 @@ class SnapClassifier {
              */
     fun inference(): Float {
         tensor.load(recorder)
-        Log.d(TAG, tensor.tensorBuffer.shape.joinToString(","))
+//        Log.d(TAG, tensor.tensorBuffer.shape.joinToString(","))
         val output = classifier.classify(tensor)
-        Log.d(TAG, output.toString())
+//        Log.d(TAG, output.toString())
 
         return output[0].categories.find { it.label == "Meow" }!!.score
     }
