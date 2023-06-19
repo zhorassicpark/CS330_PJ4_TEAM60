@@ -2,18 +2,16 @@ package com.example.pj4test.fragment
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.pj4test.MainActivity
-import com.example.pj4test.ProjectConfiguration
-import com.example.pj4test.audioInference.SnapClassifier
+import com.example.pj4test.audioInference.MeowClassifier
 import com.example.pj4test.databinding.FragmentAudioBinding
 
-class AudioFragment: Fragment(), SnapClassifier.DetectorListener {
+class AudioFragment: Fragment(), MeowClassifier.DetectorListener {
     private val TAG = "AudioFragment"
 
     private var _fragmentAudioBinding: FragmentAudioBinding? = null

@@ -51,7 +51,7 @@
         android:layout_gravity="bottom"
         android:background="@color/white"
         android:gravity="center"
-        android:text="NO PERSON"
+        android:text="NO CAT DETECTED"
         android:textColor="@color/black" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

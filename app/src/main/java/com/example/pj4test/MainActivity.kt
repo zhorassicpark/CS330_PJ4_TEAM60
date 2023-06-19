@@ -8,10 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
-import androidx.fragment.app.Fragment
-import com.example.pj4test.audioInference.SnapClassifier
 import java.util.*
-import kotlin.concurrent.scheduleAtFixedRate
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"

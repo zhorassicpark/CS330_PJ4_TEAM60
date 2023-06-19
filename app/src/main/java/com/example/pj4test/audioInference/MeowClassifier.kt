@@ -11,7 +11,7 @@ import java.util.*
 import kotlin.concurrent.scheduleAtFixedRate
 
 
-class SnapClassifier {
+class MeowClassifier {
     // Libraries for audio classification
     lateinit var classifier: AudioClassifier
     lateinit var recorder: AudioRecord

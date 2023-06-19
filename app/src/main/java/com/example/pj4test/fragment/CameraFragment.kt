@@ -18,38 +18,19 @@ package com.example.pj4test.fragment
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.media.MediaPlayer
-import android.os.Build
 import android.os.Bundle
-import android.telephony.SmsManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
-import androidx.camera.core.AspectRatio
-import androidx.camera.core.Camera
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888
-import androidx.camera.core.ImageProxy
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.pj4test.*
-import java.util.LinkedList
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import com.example.pj4test.cameraInference.PersonClassifier
+import com.example.pj4test.cameraInference.CatClassifier
 import com.example.pj4test.databinding.FragmentCameraBinding
 import org.tensorflow.lite.task.vision.detector.Detection
 
-class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
+class CameraFragment : Fragment(), CatClassifier.DetectorListener {
     private val TAG = "CameraFragment"
 
     private var _fragmentCameraBinding: FragmentCameraBinding? = null

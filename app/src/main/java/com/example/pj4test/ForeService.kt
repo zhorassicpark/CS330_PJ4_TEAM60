@@ -15,11 +15,8 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
-import com.example.pj4test.audioInference.SnapClassifier
-import com.example.pj4test.cameraInference.PersonClassifier
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.example.pj4test.audioInference.MeowClassifier
+import com.example.pj4test.cameraInference.CatClassifier
 import org.tensorflow.lite.task.vision.detector.Detection
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -27,14 +24,14 @@ import java.util.concurrent.Executors
 
 
 const val SERVICE_ID = 1
-class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorListener, LifecycleService() {
+class ForeService : CatClassifier.DetectorListener, MeowClassifier.DetectorListener, LifecycleService() {
     private val TAG = "ForeService"
     val FORE_CHANNEL_ID = "forenotification"
     private var coolCount = 60.0
     private var isAudioDetected = false;
 
 
-    private lateinit var personClassifier: PersonClassifier
+    private lateinit var catClassifier: CatClassifier
     private lateinit var bitmapBuffer: Bitmap
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -43,7 +40,7 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
 
 
     // classifiers
-    lateinit var snapClassifier: SnapClassifier
+    lateinit var snapClassifier: MeowClassifier
 
     fun Notification() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -78,9 +75,9 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
         startForeground(SERVICE_ID,notiBuilder.build())
 //        Log.w(TAG, "end foreground...")
 
-        personClassifier = PersonClassifier()
-        personClassifier.initialize(this)
-        personClassifier.setDetectorListener(this)
+        catClassifier = CatClassifier()
+        catClassifier.initialize(this)
+        catClassifier.setDetectorListener(this)
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor()
 //        setUpCamera()
@@ -92,7 +89,7 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
                 .build()
         imageAnalyzer!!.setAnalyzer(Executors.newSingleThreadExecutor()) { image -> detectObjects(image) }
 
-        snapClassifier = SnapClassifier()
+        snapClassifier = MeowClassifier()
         snapClassifier.initialize(this)
         snapClassifier.setDetectorListener(this)
 
@@ -175,7 +172,7 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
         val imageRotation = image.imageInfo.rotationDegrees
 
         // Pass Bitmap and rotation to the object detector helper for processing and detection
-        personClassifier.detect(bitmapBuffer, imageRotation)
+        catClassifier.detect(bitmapBuffer, imageRotation)
     }
 
 
@@ -224,7 +221,7 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
 //        mainActivity.increaseCoolCount()
         coolCount += 0.0333
 //        isAudioDetected = score > SnapClassifier.THRESHOLD
-        if(score > SnapClassifier.THRESHOLD && !isAudioDetected){
+        if(score > MeowClassifier.THRESHOLD && !isAudioDetected){
             val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
             cameraProviderFuture.addListener(
                 {
@@ -247,7 +244,7 @@ class ForeService : PersonClassifier.DetectorListener, SnapClassifier.DetectorLi
             )
             isAudioDetected = true;
         }
-        else if(score < SnapClassifier.THRESHOLD && isAudioDetected){
+        else if(score < MeowClassifier.THRESHOLD && isAudioDetected){
             val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
             cameraProviderFuture.addListener(
                 {
