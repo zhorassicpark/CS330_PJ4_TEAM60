@@ -22,7 +22,7 @@ class AudioFragment: Fragment(), SnapClassifier.DetectorListener {
         get() = _fragmentAudioBinding!!
 
     // classifiers
-    lateinit var snapClassifier: SnapClassifier
+//    lateinit var snapClassifier: SnapClassifier
 
     // views
     lateinit var snapView: TextView
@@ -50,38 +50,38 @@ class AudioFragment: Fragment(), SnapClassifier.DetectorListener {
 
         snapView = fragmentAudioBinding.SnapView
 
-        snapClassifier = SnapClassifier()
-        snapClassifier.initialize(requireContext())
-        snapClassifier.setDetectorListener(this)
+//        snapClassifier = SnapClassifier()
+//        snapClassifier.initialize(requireContext())
+//        snapClassifier.setDetectorListener(this)
     }
 
     override fun onPause() {
 //        Log.w(TAG, "Pause!")
         super.onPause()
-        snapClassifier.stopInferencing()
+//        snapClassifier.stopInferencing()
     }
 
 
     override fun onResume() {
 //        Log.w(TAG, "Resume!")
         super.onResume()
-        snapClassifier.startInferencing()
+//        snapClassifier.startInferencing()
     }
 
     override fun onResults(score: Float) {
-        mainActivity.increaseCoolCount()
-        activity?.runOnUiThread {
-            if (score > SnapClassifier.THRESHOLD) {
-                mainActivity.setAudioDetectedTrue()
-                snapView.text = "CAT MEOW DETECTED"
-                snapView.setBackgroundColor(ProjectConfiguration.activeBackgroundColor)
-                snapView.setTextColor(ProjectConfiguration.activeTextColor)
-            } else {
-                mainActivity.setAudioDetectedFalse()
-                snapView.text = "NOT DETECTED"
-                snapView.setBackgroundColor(ProjectConfiguration.idleBackgroundColor)
-                snapView.setTextColor(ProjectConfiguration.idleTextColor)
-            }
-        }
+////        mainActivity.increaseCoolCount()
+//        activity?.runOnUiThread {
+//            if (score > SnapClassifier.THRESHOLD) {
+//                mainActivity.setAudioDetectedTrue()
+//                snapView.text = "CAT MEOW DETECTED"
+//                snapView.setBackgroundColor(ProjectConfiguration.activeBackgroundColor)
+//                snapView.setTextColor(ProjectConfiguration.activeTextColor)
+//            } else {
+//                mainActivity.setAudioDetectedFalse()
+//                snapView.text = "NOT DETECTED"
+//                snapView.setBackgroundColor(ProjectConfiguration.idleBackgroundColor)
+//                snapView.setTextColor(ProjectConfiguration.idleTextColor)
+//            }
+//        }
     }
 }

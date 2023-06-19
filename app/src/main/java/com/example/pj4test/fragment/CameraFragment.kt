@@ -17,6 +17,7 @@ package com.example.pj4test.fragment
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.media.MediaPlayer
@@ -58,19 +59,18 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
 
     private lateinit var personView: TextView
 
-    private lateinit var personClassifier: PersonClassifier
-    private lateinit var bitmapBuffer: Bitmap
-    private var preview: Preview? = null
-    private var imageAnalyzer: ImageAnalysis? = null
-    private var camera: Camera? = null
+//    private lateinit var personClassifier: PersonClassifier
+//    private lateinit var bitmapBuffer: Bitmap
+//    private var preview: Preview? = null
+//    private var imageAnalyzer: ImageAnalysis? = null
+//    private var camera: Camera? = null
 
     /** Blocking camera operations are performed using this executor */
-    private lateinit var cameraExecutor: ExecutorService
+//    private lateinit var cameraExecutor: ExecutorService
 
     //TODO:
     lateinit var mainActivity: MainActivity
     private lateinit var notificationHelper: NotificationHelper
-    private lateinit var player:MediaPlayer
 
 
     override fun onAttach(context: Context) {
@@ -83,7 +83,7 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
         super.onDestroyView()
 
         // Shut down our background executor
-        cameraExecutor.shutdown()
+//        cameraExecutor.shutdown()
     }
 
     override fun onCreateView(
@@ -100,105 +100,108 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        personClassifier = PersonClassifier()
-        personClassifier.initialize(requireContext())
-        personClassifier.setDetectorListener(this)
-
-        // Initialize our background executor
-        cameraExecutor = Executors.newSingleThreadExecutor()
+//        personClassifier = PersonClassifier()
+//        personClassifier.initialize(requireContext())
+//        personClassifier.setDetectorListener(this)
+//
+//        // Initialize our background executor
+//        cameraExecutor = Executors.newSingleThreadExecutor()
 
         // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
-            // Set up the camera and its use cases
-            setUpCamera()
+            //background task 시작
+            val intent =  Intent(activity, ForeService::class.java)
+            ContextCompat.startForegroundService(mainActivity, intent)
+//            // Set up the camera and its use cases
+//            setUpCamera()
         }
 
         personView = fragmentCameraBinding.PersonView
     }
 
-    // Initialize CameraX, and prepare to bind the camera use cases
-    private fun setUpCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
-        cameraProviderFuture.addListener(
-            {
-                // CameraProvider
-                val cameraProvider = cameraProviderFuture.get()
+//    // Initialize CameraX, and prepare to bind the camera use cases
+//    private fun setUpCamera() {
+//        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+//        cameraProviderFuture.addListener(
+//            {
+//                // CameraProvider
+//                val cameraProvider = cameraProviderFuture.get()
+//
+//                // Build and bind the camera use cases
+//                bindCameraUseCases(cameraProvider)
+//            },
+//            ContextCompat.getMainExecutor(requireContext())
+//        )
+//    }
 
-                // Build and bind the camera use cases
-                bindCameraUseCases(cameraProvider)
-            },
-            ContextCompat.getMainExecutor(requireContext())
-        )
-    }
+//    // Declare and bind preview, capture and analysis use cases
+//    @SuppressLint("UnsafeOptInUsageError")
+//    private fun bindCameraUseCases(cameraProvider: ProcessCameraProvider) {
+//
+//        // CameraSelector - makes assumption that we're only using the back camera
+//        val cameraSelector =
+//            CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
+//
+//        // Preview. Only using the 4:3 ratio because this is the closest to our models
+//        preview =
+//            Preview.Builder()
+//                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+//                .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
+//                .build()
+//        // Attach the viewfinder's surface provider to preview use case
+//        preview?.setSurfaceProvider(fragmentCameraBinding.viewFinder.surfaceProvider)
+//
+//        // ImageAnalysis. Using RGBA 8888 to match how our models work
+//        imageAnalyzer =
+//            ImageAnalysis.Builder()
+//                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+//                .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
+//                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+//                .setOutputImageFormat(OUTPUT_IMAGE_FORMAT_RGBA_8888)
+//                .build()
+//        // The analyzer can then be assigned to the instance
+//        imageAnalyzer!!.setAnalyzer(cameraExecutor) { image -> detectObjects(image) }
+//
+//        // Must unbind the use-cases before rebinding them
+//        cameraProvider.unbindAll()
+//
+//        try {
+//            // A variable number of use-cases can be passed here -
+//            // camera provides access to CameraControl & CameraInfo
+//            camera = cameraProvider.bindToLifecycle(
+//                this,
+//                cameraSelector,
+//                preview,
+//                imageAnalyzer
+//            )
+//        } catch (exc: Exception) {
+//            Log.e(TAG, "Use case binding failed", exc)
+//        }
+//    }
 
-    // Declare and bind preview, capture and analysis use cases
-    @SuppressLint("UnsafeOptInUsageError")
-    private fun bindCameraUseCases(cameraProvider: ProcessCameraProvider) {
-
-        // CameraSelector - makes assumption that we're only using the back camera
-        val cameraSelector =
-            CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
-
-        // Preview. Only using the 4:3 ratio because this is the closest to our models
-        preview =
-            Preview.Builder()
-                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
-                .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
-                .build()
-        // Attach the viewfinder's surface provider to preview use case
-        preview?.setSurfaceProvider(fragmentCameraBinding.viewFinder.surfaceProvider)
-
-        // ImageAnalysis. Using RGBA 8888 to match how our models work
-        imageAnalyzer =
-            ImageAnalysis.Builder()
-                .setTargetAspectRatio(AspectRatio.RATIO_4_3)
-                .setTargetRotation(fragmentCameraBinding.viewFinder.display.rotation)
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setOutputImageFormat(OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                .build()
-        // The analyzer can then be assigned to the instance
-        imageAnalyzer!!.setAnalyzer(cameraExecutor) { image -> detectObjects(image) }
-
-        // Must unbind the use-cases before rebinding them
-        cameraProvider.unbindAll()
-
-        try {
-            // A variable number of use-cases can be passed here -
-            // camera provides access to CameraControl & CameraInfo
-            camera = cameraProvider.bindToLifecycle(
-                this,
-                cameraSelector,
-                preview,
-                imageAnalyzer
-            )
-        } catch (exc: Exception) {
-            Log.e(TAG, "Use case binding failed", exc)
-        }
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        imageAnalyzer?.targetRotation = fragmentCameraBinding.viewFinder.display.rotation
-    }
-
-    private fun detectObjects(image: ImageProxy) {
-//        Log.w(TAG, "detect Objects called!")
-        if (!::bitmapBuffer.isInitialized) {
-            // The image rotation and RGB image buffer are initialized only once
-            // the analyzer has started running
-            bitmapBuffer = Bitmap.createBitmap(
-                image.width,
-                image.height,
-                Bitmap.Config.ARGB_8888
-            )
-        }
-        // Copy out RGB bits to the shared bitmap buffer
-        image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
-        val imageRotation = image.imageInfo.rotationDegrees
-
-        // Pass Bitmap and rotation to the object detector helper for processing and detection
-        personClassifier.detect(bitmapBuffer, imageRotation)
-    }
+//    override fun onConfigurationChanged(newConfig: Configuration) {
+//        super.onConfigurationChanged(newConfig)
+//        imageAnalyzer?.targetRotation = fragmentCameraBinding.viewFinder.display.rotation
+//    }
+//
+//    private fun detectObjects(image: ImageProxy) {
+////        Log.w(TAG, "detect Objects called!")
+//        if (!::bitmapBuffer.isInitialized) {
+//            // The image rotation and RGB image buffer are initialized only once
+//            // the analyzer has started running
+//            bitmapBuffer = Bitmap.createBitmap(
+//                image.width,
+//                image.height,
+//                Bitmap.Config.ARGB_8888
+//            )
+//        }
+//        // Copy out RGB bits to the shared bitmap buffer
+//        image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
+//        val imageRotation = image.imageInfo.rotationDegrees
+//
+//        // Pass Bitmap and rotation to the object detector helper for processing and detection
+//        personClassifier.detect(bitmapBuffer, imageRotation)
+//    }
 
     // Update UI after objects have been detected. Extracts original image height/width
     // to scale and place bounding boxes properly through OverlayView
@@ -208,59 +211,63 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
         imageHeight: Int,
         imageWidth: Int
     ) {
-        activity?.runOnUiThread {
-            // Pass necessary information to OverlayView for drawing on the canvas
-            fragmentCameraBinding.overlay.setResults(
-                results ?: LinkedList<Detection>(),
-                imageHeight,
-                imageWidth
-            )
-
-            // find at least one bounding box of the person
-            val isCatDetected: Boolean = results!!.find { it.categories[0].label == "cat" } != null
-
-            // change UI according to the result
-            if (isCatDetected) {
-                personView.text = "CAT DETECTED"
-                personView.setBackgroundColor(ProjectConfiguration.activeBackgroundColor)
-                personView.setTextColor(ProjectConfiguration.activeTextColor)
-//                Log.w(TAG, "Cat Detected!")
-                // 알림 띄우기
-                if(mainActivity.isAudioDetected() && mainActivity.isCoolCountFull()){
-                    val smsManager:SmsManager
-                    if (Build.VERSION.SDK_INT>=23) {
-                        smsManager = mainActivity.getSystemService(SmsManager::class.java)
-                    }
-                    else{
-                        smsManager = SmsManager.getDefault()
-                    }
-                    Log.w(TAG, "sending messages")
-                    smsManager.sendTextMessage("+821074776872", null, "고양이 배고프다옹! 밥 달라옹!", null, null)
-                    Log.w(TAG, "end sending messages\n")
-                    mainActivity.initCoolCount()
-                }
-            } else {
-                personView.text = "NO CAT"
-                personView.setBackgroundColor(ProjectConfiguration.idleBackgroundColor)
-                personView.setTextColor(ProjectConfiguration.idleTextColor)
-            }
-            // Force a redraw
-            fragmentCameraBinding.overlay.invalidate()
-        }
+//        activity?.runOnUiThread {
+//            // Pass necessary information to OverlayView for drawing on the canvas
+//            fragmentCameraBinding.overlay.setResults(
+//                results ?: LinkedList<Detection>(),
+//                imageHeight,
+//                imageWidth
+//            )
+//
+//            // find at least one bounding box of the person
+//            val isCatDetected: Boolean = results!!.find { it.categories[0].label == "cat" } != null
+//
+//            // change UI according to the result
+//            if (isCatDetected) {
+//                personView.text = "CAT DETECTED"
+//                personView.setBackgroundColor(ProjectConfiguration.activeBackgroundColor)
+//                personView.setTextColor(ProjectConfiguration.activeTextColor)
+////                Log.w(TAG, "Cat Detected!")
+//
+//                mainActivity.startAudioInference()
+//
+//                // 알림 띄우기
+//                if(mainActivity.isAudioDetected() && mainActivity.isCoolCountFull()){
+//                    val smsManager:SmsManager
+//                    if (Build.VERSION.SDK_INT>=23) {
+//                        smsManager = mainActivity.getSystemService(SmsManager::class.java)
+//                    }
+//                    else{
+//                        smsManager = SmsManager.getDefault()
+//                    }
+//                    Log.w(TAG, "sending messages")
+//                    smsManager.sendTextMessage("+821074776872", null, "고양이 배고프다옹! 밥 달라옹!", null, null)
+//                    Log.w(TAG, "end sending messages\n")
+//                    mainActivity.initCoolCount()
+//                }
+//            } else {
+//                mainActivity.stopAudioInference()
+//                personView.text = "NO CAT"
+//                personView.setBackgroundColor(ProjectConfiguration.idleBackgroundColor)
+//                personView.setTextColor(ProjectConfiguration.idleTextColor)
+//            }
+//            // Force a redraw
+//            fragmentCameraBinding.overlay.invalidate()
+//        }
     }
 
     override fun onObjectDetectionError(error: String) {
-        activity?.runOnUiThread {
-            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
-        }
+//        activity?.runOnUiThread {
+//            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+//        }
     }
-
-    //알림 호출
-    private fun showNotification(title: String, message: String){
-
-        val nb: NotificationCompat.Builder =
-            notificationHelper.getChannelNotification(title, message)
-
-        notificationHelper.getManager().notify(1, nb.build())
-    }
+//
+//    //알림 호출
+//    private fun showNotification(title: String, message: String){
+//
+//        val nb: NotificationCompat.Builder =
+//            notificationHelper.getChannelNotification(title, message)
+//
+//        notificationHelper.getManager().notify(1, nb.build())
+//    }
 }
