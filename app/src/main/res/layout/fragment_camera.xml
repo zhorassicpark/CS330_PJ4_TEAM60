@@ -20,14 +20,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/view_finder"
+<!--    <androidx.camera.view.PreviewView-->
+<!--        android:id="@+id/view_finder"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:layout_marginBottom="60dp"-->
+<!--        app:scaleType="fillStart">-->
+
+<!--    </androidx.camera.view.PreviewView>-->
+    <TextView
+        android:id="@+id/AnnounceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="60dp"
-        app:scaleType="fillStart">
-
-    </androidx.camera.view.PreviewView>
+        android:layout_gravity="bottom"
+        android:background="@color/cardview_dark_background"
+        android:gravity="center"
+        android:text="화면을 끄고 고양이 먹이 기계 앞에 놔주세요"
+        android:textColor="@color/white" />
 
     <com.example.pj4test.OverlayView
         android:id="@+id/overlay"

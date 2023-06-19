@@ -108,13 +108,13 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
 //        cameraExecutor = Executors.newSingleThreadExecutor()
 
         // Wait for the views to be properly laid out
-        fragmentCameraBinding.viewFinder.post {
+//        fragmentCameraBinding.viewFinder.post {
             //background task 시작
             val intent =  Intent(activity, ForeService::class.java)
             ContextCompat.startForegroundService(mainActivity, intent)
 //            // Set up the camera and its use cases
 //            setUpCamera()
-        }
+//        }
 
         personView = fragmentCameraBinding.PersonView
     }
